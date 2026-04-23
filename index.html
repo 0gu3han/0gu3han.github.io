@@ -131,7 +131,7 @@
     @keyframes spin { to { transform: rotate(360deg); } }
 
     .hero-name {
-      font-size: clamp(4.5rem, 14vw, 11rem);
+      font-size: clamp(2.8rem, 8vw, 6.5rem);
       font-weight: 900;
       line-height: 0.92;
       letter-spacing: -0.01em;
@@ -215,7 +215,7 @@
     .stat-item:last-child { border-right: none; }
 
     .stat-num {
-      font-size: 3.2rem; font-weight: 900;
+      font-size: 2.4rem; font-weight: 900;
       line-height: 1;
       background: linear-gradient(135deg, #fff 0%, var(--accent2) 100%);
       -webkit-background-clip: text; -webkit-text-fill-color: transparent;
@@ -242,7 +242,7 @@
     }
 
     .headline {
-      font-size: clamp(2.8rem, 7vw, 5.5rem);
+      font-size: clamp(1.9rem, 4vw, 3.2rem);
       font-weight: 900; line-height: 0.95;
       letter-spacing: -0.01em;
       text-transform: uppercase;
@@ -403,7 +403,7 @@
     }
 
     .tile-name {
-      font-size: clamp(2.4rem, 5vw, 4.2rem);
+      font-size: clamp(1.5rem, 3vw, 2.5rem);
       font-weight: 900; line-height: 0.95;
       text-transform: uppercase; letter-spacing: -0.01em;
       color: #fff; margin-bottom: 0.75rem;
@@ -500,7 +500,7 @@
     .tl-right { padding: 2.5rem 2.75rem; }
 
     .tl-role {
-      font-size: 1.5rem; font-weight: 900;
+      font-size: 1.15rem; font-weight: 900;
       text-transform: uppercase; letter-spacing: 0.01em;
       color: #fff; margin-bottom: 0.2rem;
     }
@@ -612,6 +612,56 @@
       .tl-right { padding: 1.75rem; }
       .contact-card { padding: 2.5rem 1.5rem; }
     }
+
+    /* ─── CUSTOM CURSOR ─── */
+    @media (pointer: fine) {
+      * { cursor: none !important; }
+    }
+    .cursor-dot {
+      position: fixed; top: 0; left: 0; z-index: 9999;
+      width: 7px; height: 7px; border-radius: 50%;
+      background: var(--accent2);
+      pointer-events: none;
+      transform: translate(-50%, -50%);
+      transition: width 0.2s, height 0.2s, background 0.2s, opacity 0.2s;
+      mix-blend-mode: screen;
+      will-change: left, top;
+    }
+    .cursor-ring {
+      position: fixed; top: 0; left: 0; z-index: 9998;
+      width: 30px; height: 30px; border-radius: 50%;
+      border: 1.5px solid rgba(129,140,248,0.45);
+      pointer-events: none;
+      transform: translate(-50%, -50%);
+      transition: width 0.3s, height 0.3s, border-color 0.3s, opacity 0.2s;
+      will-change: left, top;
+    }
+    .cursor-dot.hovered  { width: 10px; height: 10px; background: var(--cyan); }
+    .cursor-ring.hovered { width: 46px; height: 46px; border-color: rgba(34,211,238,0.35); }
+    .cursor-dot.hidden, .cursor-ring.hidden { opacity: 0; }
+
+    /* ─── RIPPLE ─── */
+    @keyframes ripple { to { transform: scale(2.5); opacity: 0; } }
+
+    /* ─── PROJECT TILE 3D ─── */
+    .project-tile { transform-style: preserve-3d; will-change: transform; }
+
+    /* ─── NAV active link ─── */
+    .nav-links a.active { color: var(--text); }
+    .nav-links a.active::after {
+      content: '';
+      position: absolute; bottom: -4px; left: 0; right: 0;
+      height: 1px; background: var(--accent2);
+      display: block;
+    }
+    .nav-links a { position: relative; }
+
+    /* ─── SKILL CARD hover accent ─── */
+    .skill-card { transition: background 0.25s, box-shadow 0.25s; }
+    .skill-card:hover {
+      background: var(--dark2);
+      box-shadow: inset 0 0 0 1px rgba(99,102,241,0.3);
+    }
   </style>
 </head>
 <body>
@@ -637,7 +687,8 @@
 
     <div class="hero-photo-wrap">
       <div class="hero-photo-glow"></div>
-      <img src="images/Profile.jpeg" alt="Oguzhan Rejepov" class="hero-photo" />
+      <img src="images/Profile.jpeg" alt="Oguzhan Rejepov" class="hero-photo"
+           onerror="this.onerror=null;this.src='data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 width=%22148%22 height=%22148%22 viewBox=%220 0 148 148%22><rect width=%22148%22 height=%22148%22 fill=%22%231a1a2e%22/><text x=%2274%22 y=%2292%22 font-family=%22sans-serif%22 font-size=%2248%22 font-weight=%22bold%22 fill=%22%23818cf8%22 text-anchor=%22middle%22>OR</text></svg>';" />
     </div>
 
     <h1 class="hero-name">Oguzhan<br/>Rejepov</h1>
@@ -697,7 +748,8 @@
       <div class="about-layout">
         <div class="about-photo-col reveal">
           <div class="about-photo-border"></div>
-          <img src="images/Profile.jpeg" alt="Oguzhan Rejepov" class="about-photo" />
+          <img src="images/Profile.jpeg" alt="Oguzhan Rejepov" class="about-photo"
+               onerror="this.onerror=null;this.style.background='#1a1a2e';" />
         </div>
         <div class="about-text reveal">
           <p class="body-text">
@@ -1098,21 +1150,163 @@
     <span>&copy; 2025</span>
   </footer>
 
+  <!-- Cursor -->
+  <div class="cursor-dot" id="cursorDot"></div>
+  <div class="cursor-ring" id="cursorRing"></div>
+
   <script>
-    // Scroll reveal
-    const observer = new IntersectionObserver((entries) => {
+    /* ── CUSTOM CURSOR ── */
+    const dot  = document.getElementById('cursorDot');
+    const ring = document.getElementById('cursorRing');
+    let mx = -200, my = -200, rx = -200, ry = -200;
+    let cursorVisible = false;
+
+    document.addEventListener('mousemove', e => {
+      mx = e.clientX; my = e.clientY;
+      if (!cursorVisible) {
+        dot.classList.remove('hidden');
+        ring.classList.remove('hidden');
+        cursorVisible = true;
+      }
+      dot.style.left = mx + 'px';
+      dot.style.top  = my + 'px';
+    });
+
+    document.addEventListener('mouseleave', () => {
+      dot.classList.add('hidden');
+      ring.classList.add('hidden');
+      cursorVisible = false;
+    });
+
+    (function animateRing() {
+      rx += (mx - rx) * 0.1;
+      ry += (my - ry) * 0.1;
+      ring.style.left = rx + 'px';
+      ring.style.top  = ry + 'px';
+      requestAnimationFrame(animateRing);
+    })();
+
+    const hoverTargets = 'a, button, .skill-card, .project-tile, .stat-item, .tl-row';
+    document.querySelectorAll(hoverTargets).forEach(el => {
+      el.addEventListener('mouseenter', () => { dot.classList.add('hovered'); ring.classList.add('hovered'); });
+      el.addEventListener('mouseleave', () => { dot.classList.remove('hovered'); ring.classList.remove('hovered'); });
+    });
+
+    /* ── SCROLL REVEAL ── */
+    const revealObs = new IntersectionObserver(entries => {
       entries.forEach(entry => {
-        if (entry.isIntersecting) {
-          const siblings = Array.from(entry.target.parentElement.querySelectorAll('.reveal'));
-          const idx = siblings.indexOf(entry.target);
-          entry.target.style.transitionDelay = Math.min(idx * 0.07, 0.35) + 's';
-          entry.target.classList.add('visible');
-          observer.unobserve(entry.target);
-        }
+        if (!entry.isIntersecting) return;
+        const siblings = Array.from(entry.target.parentElement.querySelectorAll('.reveal'));
+        const idx = siblings.indexOf(entry.target);
+        entry.target.style.transitionDelay = Math.min(idx * 0.07, 0.35) + 's';
+        entry.target.classList.add('visible');
+        revealObs.unobserve(entry.target);
       });
     }, { threshold: 0.08 });
+    document.querySelectorAll('.reveal').forEach(el => revealObs.observe(el));
 
-    document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
+    /* ── STAT COUNTER ── */
+    function countUp(el, target, suffix, duration) {
+      const start = performance.now();
+      (function update(now) {
+        const t = Math.min((now - start) / duration, 1);
+        const ease = 1 - Math.pow(1 - t, 3);
+        el.textContent = Math.round(ease * target) + suffix;
+        if (t < 1) requestAnimationFrame(update);
+      })(start);
+    }
+
+    const statConfig = [
+      { suffix: '+', val: 3 }, { suffix: '+', val: 6 },
+      { suffix: '',  val: 5 }, { suffix: '',  val: 2027 }
+    ];
+    let counted = false;
+    const statObs = new IntersectionObserver(entries => {
+      if (!entries[0].isIntersecting || counted) return;
+      counted = true;
+      document.querySelectorAll('.stat-num').forEach((el, i) => {
+        const { val, suffix } = statConfig[i] || {};
+        if (val !== undefined) countUp(el, val, suffix, 1400);
+      });
+    }, { threshold: 0.6 });
+    const statBar = document.querySelector('.stat-bar');
+    if (statBar) statObs.observe(statBar);
+
+    /* ── 3D TILT on project tiles ── */
+    document.querySelectorAll('.project-tile').forEach(tile => {
+      tile.addEventListener('mousemove', e => {
+        const r = tile.getBoundingClientRect();
+        const x = ((e.clientX - r.left) / r.width  - 0.5) * 6;
+        const y = ((e.clientY - r.top)  / r.height - 0.5) * 6;
+        tile.style.transform = `translateY(-6px) rotateX(${-y}deg) rotateY(${x}deg)`;
+        tile.style.transition = 'box-shadow 0.2s, border-color 0.2s';
+      });
+      tile.addEventListener('mouseleave', () => {
+        tile.style.transform = '';
+        tile.style.transition = 'all 0.45s ease';
+      });
+    });
+
+    /* ── MAGNETIC BUTTONS ── */
+    document.querySelectorAll('.btn').forEach(btn => {
+      btn.addEventListener('mousemove', e => {
+        const r = btn.getBoundingClientRect();
+        const x = (e.clientX - r.left - r.width  / 2) * 0.22;
+        const y = (e.clientY - r.top  - r.height / 2) * 0.22;
+        btn.style.transform = `translate(${x}px, ${y}px) scale(1.04)`;
+      });
+      btn.addEventListener('mouseleave', () => {
+        btn.style.transform = '';
+        btn.style.transition = 'all 0.4s ease';
+      });
+    });
+
+    /* ── RIPPLE on click ── */
+    document.querySelectorAll('.btn').forEach(btn => {
+      btn.style.position = 'relative';
+      btn.style.overflow = 'hidden';
+      btn.addEventListener('click', e => {
+        const r = btn.getBoundingClientRect();
+        const size = Math.max(r.width, r.height) * 2;
+        const ripple = document.createElement('span');
+        Object.assign(ripple.style, {
+          position: 'absolute', borderRadius: '50%',
+          background: 'rgba(255,255,255,0.22)',
+          width: size + 'px', height: size + 'px',
+          left: (e.clientX - r.left - size / 2) + 'px',
+          top:  (e.clientY - r.top  - size / 2) + 'px',
+          transform: 'scale(0)', pointerEvents: 'none',
+          animation: 'ripple 0.55s ease-out forwards'
+        });
+        btn.appendChild(ripple);
+        setTimeout(() => ripple.remove(), 600);
+      });
+    });
+
+    /* ── HERO BG PARALLAX ── */
+    const heroBg = document.querySelector('.hero-bg');
+    if (heroBg) {
+      document.addEventListener('mousemove', e => {
+        const x = (e.clientX / window.innerWidth  - 0.5) * 18;
+        const y = (e.clientY / window.innerHeight - 0.5) * 18;
+        heroBg.style.transform = `translate(${x}px, ${y}px) scale(1.04)`;
+        heroBg.style.transition = 'transform 0.6s ease-out';
+      });
+    }
+
+    /* ── ACTIVE NAV on scroll ── */
+    const sections = document.querySelectorAll('section[id], div[id]');
+    const navAs    = document.querySelectorAll('.nav-links a');
+    const scrollObs = new IntersectionObserver(entries => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          navAs.forEach(a => {
+            a.classList.toggle('active', a.getAttribute('href') === '#' + entry.target.id);
+          });
+        }
+      });
+    }, { rootMargin: '-40% 0px -55% 0px' });
+    sections.forEach(s => scrollObs.observe(s));
   </script>
 </body>
 </html>
