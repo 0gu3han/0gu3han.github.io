@@ -119,10 +119,9 @@
 
     .hero-photo {
       width: 110px; height: 110px;
-      border-radius: 50%; object-fit: contain;
+      border-radius: 50%; object-fit: cover; object-position: center top;
       display: block; position: relative; z-index: 1;
       border: 2px solid var(--blue2);
-      background: var(--surface);
     }
 
     .hero-photo-ring {
@@ -607,7 +606,7 @@
 
     <div class="hero-photo-wrap">
       <div class="hero-photo-ring"></div>
-      <img src="images/OR_LOGO.png" alt="Oguzhan Rejepov" class="hero-photo"
+      <img src="images/Avatar.jpeg" alt="Oguzhan Rejepov" class="hero-photo"
            onerror="this.onerror=null;this.src='data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 width=%22110%22 height=%22110%22><rect width=%22110%22 height=%22110%22 rx=%2255%22 fill=%22%230f1f35%22/><text x=%2255%22 y=%2273%22 font-family=%22sans-serif%22 font-size=%2232%22 font-weight=%22bold%22 fill=%22%235b8def%22 text-anchor=%22middle%22>OR</text></svg>';" />
     </div>
 
