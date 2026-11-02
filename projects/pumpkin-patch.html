@@ -1,0 +1,654 @@
+<title>Pumpkin Topology</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Grenze+Gotisch:wght@500;700&family=Figtree:wght@400;500;600&family=JetBrains+Mono:wght@400;600&display=swap">
+<style>
+/* Layout: a moonlit stage on the left where the pumpkin morphs, a lantern-lit question card on the right. */
+:root {
+  --night: #120d18;
+  --night-2: #1c1424;
+  --panel: #221a2b;
+  --line: #3a2d45;
+  --bone: #f0e7da;
+  --dim: #a99cb6;
+  --pumpkin: #f28a1c;
+  --candle: #ffd36b;
+  --moss: #8bab6e;
+  --blood: #e2574c;
+  --font-display: "Grenze Gotisch", "Palatino Linotype", Georgia, serif;
+  --font-body: "Figtree", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, Menlo, Consolas, monospace;
+  color-scheme: dark;
+}
+html, body { height: 100%; }
+body {
+  background: var(--night);
+  color: var(--bone);
+  font-family: var(--font-body);
+  font-size: 15px;
+  line-height: 1.55;
+}
+.app {
+  min-height: 100%;
+  display: grid;
+  grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr);
+  gap: 24px;
+  padding-block: 20px 28px;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+  max-width: 1360px;
+  margin: 0 auto;
+  box-sizing: border-box;
+}
+@media (max-width: 860px) { .app { grid-template-columns: minmax(0, 1fr); } }
+
+/* Stage */
+.stage {
+  position: relative;
+  min-height: 420px;
+  border-radius: 18px;
+  overflow: hidden;
+  background:
+    radial-gradient(ellipse 60% 18% at 50% 88%, rgba(242,138,28,.16), transparent 70%),
+    radial-gradient(circle at 78% 14%, rgba(240,231,218,.16), transparent 22%),
+    radial-gradient(ellipse at 50% 40%, var(--night-2), var(--night) 75%);
+  border: 1px solid var(--line);
+  display: flex;
+  flex-direction: column;
+}
+@media (min-width: 861px) { .stage { position: sticky; top: max(20px, env(safe-area-inset-top, 0px)); height: calc(100vh - 48px); max-height: 820px; } }
+@media (max-width: 860px) { .stage { height: 62vh; max-height: 560px; } }
+.stage canvas { position: absolute; inset: 0; width: 100%; height: 100%; display: block; touch-action: none; cursor: grab; }
+.stage canvas:active { cursor: grabbing; }
+.moon {
+  position: absolute; top: 9%; right: 14%; width: 46px; height: 46px; border-radius: 50%;
+  background: radial-gradient(circle at 38% 38%, var(--bone), #cbbfae 70%);
+  box-shadow: 0 0 40px rgba(240,231,218,.35);
+  opacity: .8; pointer-events: none;
+}
+.stage-top {
+  position: relative; z-index: 2; display: flex; justify-content: space-between; align-items: flex-start;
+  gap: 12px; padding: 16px 18px; pointer-events: none;
+}
+.brand { font-family: var(--font-display); font-size: 28px; line-height: 1; letter-spacing: .01em; color: var(--pumpkin); }
+.brand small { display: block; font-family: var(--font-mono); font-size: 11px; letter-spacing: .12em; text-transform: uppercase; color: var(--dim); margin-top: 6px; }
+.stage-bottom {
+  position: relative; z-index: 2; margin-top: auto; display: flex; flex-direction: column; align-items: center; gap: 12px;
+  padding: 16px 18px 18px;
+}
+.hint { font-family: var(--font-mono); font-size: 11px; color: var(--dim); letter-spacing: .06em; text-align: center; }
+
+.carve {
+  font-family: var(--font-display);
+  font-size: 26px;
+  letter-spacing: .02em;
+  color: var(--night);
+  background: linear-gradient(180deg, var(--candle), var(--pumpkin));
+  border: 0;
+  border-radius: 999px;
+  padding: 10px 30px 12px;
+  cursor: pointer;
+  box-shadow: 0 0 0 1px rgba(255,211,107,.4), 0 8px 30px rgba(242,138,28,.35);
+  transition: transform .15s ease, box-shadow .2s ease;
+  display: inline-flex; align-items: center; gap: 10px;
+}
+.carve:hover { transform: translateY(-1px); box-shadow: 0 0 0 1px rgba(255,211,107,.6), 0 10px 40px rgba(242,138,28,.55); }
+.carve:active { transform: translateY(1px); }
+.carve:focus-visible, button:focus-visible, a:focus-visible { outline: 2px solid var(--candle); outline-offset: 3px; }
+.carve svg { width: 20px; height: 20px; }
+
+.slash { position: absolute; inset: 0; z-index: 3; pointer-events: none; width: 100%; height: 100%; }
+.slash path { fill: none; stroke: var(--candle); stroke-width: 3; stroke-linecap: round; stroke-dasharray: 1400; stroke-dashoffset: 1400; opacity: 0; filter: drop-shadow(0 0 6px var(--pumpkin)); }
+.slash.go path { animation: slash .55s ease-out forwards; }
+@keyframes slash { 0% { stroke-dashoffset: 1400; opacity: 1; } 60% { stroke-dashoffset: 0; opacity: 1; } 100% { stroke-dashoffset: 0; opacity: 0; } }
+
+/* Path of stages */
+.path { display: flex; flex-wrap: wrap; gap: 6px; justify-content: center; }
+.path button {
+  font-family: var(--font-mono); font-size: 11px; letter-spacing: .06em; text-transform: uppercase;
+  color: var(--dim); background: rgba(18,13,24,.6); border: 1px solid var(--line); border-radius: 999px;
+  padding: 5px 10px; cursor: pointer; transition: color .2s, border-color .2s, background .2s;
+}
+.path button:hover { color: var(--bone); border-color: var(--dim); }
+.path button[aria-current="step"] { color: var(--night); background: var(--pumpkin); border-color: var(--pumpkin); }
+
+/* Panel */
+.panel { display: flex; flex-direction: column; gap: 18px; min-width: 0; padding-block: 6px; }
+.eyebrow { font-family: var(--font-mono); font-size: 11px; letter-spacing: .14em; text-transform: uppercase; color: var(--pumpkin); }
+h1, h2 { font-family: var(--font-display); font-weight: 700; text-wrap: balance; margin: 0; line-height: 1.02; }
+h1 { font-size: clamp(36px, 5vw, 54px); }
+h2 { font-size: 26px; color: var(--candle); }
+p { margin: 0; max-width: 64ch; }
+.lede { color: var(--dim); font-size: 16px; }
+.card { display: flex; flex-direction: column; gap: 14px; }
+.qa { display: flex; flex-direction: column; gap: 10px; border-top: 1px solid var(--line); padding-top: 16px; }
+.q { font-weight: 600; color: var(--bone); display: flex; gap: 10px; }
+.q::before { content: "Q"; font-family: var(--font-mono); font-size: 12px; color: var(--night); background: var(--candle); border-radius: 4px; padding: 0 6px; height: 20px; line-height: 20px; margin-top: 2px; flex: none; }
+.a { color: var(--bone); }
+.a b { color: var(--candle); font-weight: 600; }
+.more { color: var(--dim); font-size: 14px; }
+.math { font-family: var(--font-mono); font-size: .92em; color: var(--candle); white-space: nowrap; }
+
+.specs {
+  display: grid; grid-template-columns: repeat(auto-fit, minmax(118px, 1fr)); gap: 1px;
+  background: var(--line); border: 1px solid var(--line); border-radius: 10px; overflow: hidden;
+}
+.spec { background: var(--panel); padding: 10px 12px; display: flex; flex-direction: column; gap: 2px; }
+.spec span { font-family: var(--font-mono); font-size: 10px; letter-spacing: .12em; text-transform: uppercase; color: var(--dim); }
+.spec strong { font-family: var(--font-mono); font-weight: 600; font-size: 14px; color: var(--bone); }
+.spec strong.no { color: var(--blood); }
+.spec strong.yes { color: var(--moss); }
+
+.tools { display: flex; flex-wrap: wrap; gap: 8px; }
+.tool {
+  font-family: var(--font-body); font-weight: 600; font-size: 13px; color: var(--bone);
+  background: var(--panel); border: 1px solid var(--line); border-radius: 8px; padding: 8px 12px; cursor: pointer;
+  transition: border-color .2s, background .2s;
+}
+.tool:hover { border-color: var(--pumpkin); }
+.tool[aria-pressed="true"] { border-color: var(--candle); background: #2e2236; color: var(--candle); }
+.tool:disabled { opacity: .45; cursor: not-allowed; }
+.status { font-family: var(--font-mono); font-size: 12px; color: var(--candle); min-height: 1.5em; }
+
+.legend { display: flex; flex-wrap: wrap; gap: 14px; font-size: 13px; color: var(--dim); }
+.legend i { display: inline-block; width: 12px; height: 12px; border-radius: 3px; margin-right: 6px; vertical-align: -1px; }
+
+/* Ranking */
+.steps { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 0; }
+.steps li { display: grid; grid-template-columns: 34px minmax(0, 1fr); gap: 12px; padding: 14px 0; border-top: 1px solid var(--line); }
+.steps .n { font-family: var(--font-display); font-size: 30px; line-height: 1; color: var(--pumpkin); }
+.steps h3 { margin: 0 0 4px; font-size: 16px; font-weight: 600; }
+.steps h3 em { font-style: normal; color: var(--candle); }
+.steps p { color: var(--dim); font-size: 14px; }
+.broke { display: inline-block; font-family: var(--font-mono); font-size: 10px; letter-spacing: .1em; text-transform: uppercase; color: var(--night); background: var(--blood); border-radius: 4px; padding: 1px 6px; margin-right: 4px; }
+.kept { display: inline-block; font-family: var(--font-mono); font-size: 10px; letter-spacing: .1em; text-transform: uppercase; color: var(--night); background: var(--moss); border-radius: 4px; padding: 1px 6px; margin-right: 4px; }
+.order { font-family: var(--font-display); font-size: 26px; color: var(--bone); line-height: 1.2; }
+.order span { color: var(--pumpkin); padding: 0 4px; }
+.table-wrap { overflow-x: auto; border: 1px solid var(--line); border-radius: 10px; }
+table { border-collapse: collapse; width: 100%; font-size: 13px; min-width: 560px; }
+th, td { text-align: left; padding: 8px 10px; border-bottom: 1px solid var(--line); white-space: nowrap; }
+th { font-family: var(--font-mono); font-size: 10px; letter-spacing: .12em; text-transform: uppercase; color: var(--dim); font-weight: 400; background: var(--panel); }
+td { font-family: var(--font-mono); font-variant-numeric: tabular-nums; }
+td:first-child { font-family: var(--font-body); font-weight: 600; }
+tr:last-child td { border-bottom: 0; }
+.footnote { font-size: 13px; color: var(--dim); }
+
+.fade { animation: fadeIn .5s ease both; }
+@keyframes fadeIn { from { opacity: .2; transform: translateY(6px); } to { opacity: 1; transform: none; } }
+@media (prefers-reduced-motion: reduce) { .fade, .slash.go path { animation: none; } }
+</style>
+
+<div class="app">
+  <section class="stage" aria-label="3D model">
+    <div class="moon" aria-hidden="true"></div>
+    <canvas id="scene" aria-label="Rotatable 3D model of the current surface"></canvas>
+    <svg class="slash" id="slash" viewBox="0 0 1000 1000" preserveAspectRatio="none" aria-hidden="true">
+      <path d="M120 180 Q 520 420 880 820"></path>
+    </svg>
+    <div class="stage-top">
+      <div class="brand">Pumpkin Topology<small>4 surfaces · decreasing symmetry</small></div>
+    </div>
+    <div class="stage-bottom">
+      <button class="carve" id="carve" type="button">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 21 L14 10"/><path d="M14 10 L20 4 L21 6 L15 12 Z" fill="currentColor"/></svg>
+        <span id="carveLabel">Carve</span>
+      </button>
+      <nav class="path" id="path" aria-label="Stages"></nav>
+      <div class="hint">Drag to turn · scroll or pinch to zoom</div>
+    </div>
+  </section>
+
+  <main class="panel" id="panel" aria-live="polite"></main>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+<script>
+(function () {
+  const TAU = Math.PI * 2;
+  const NU = 180, NV = 72;           // grid resolution shared by every shape so they can morph
+  const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  /* ---------- Parametric surfaces, all on (u, v) in [0,1]² ---------- */
+  // Convention: theta = 2πu, x = -r·sinθ, z = -r·cosθ so that u = 0.5 faces the camera.
+  function pumpkin(u, v) {
+    const th = TAU * u, ph = Math.PI * v;
+    const r = 0.9 + 0.1 * Math.sqrt(Math.abs(Math.cos(4 * th)));
+    const sp = Math.sin(ph), cp = Math.cos(ph);
+    const R = 1.18 * r * sp;
+    const y = 0.86 * cp - 0.2 * Math.sign(cp) * Math.exp(-Math.pow(sp / 0.28, 2));
+    return [-R * Math.sin(th), y, -R * Math.cos(th)];
+  }
+  function sphere(u, v) {
+    const th = TAU * u, ph = Math.PI * v, R = 1.08 * Math.sin(ph);
+    return [-R * Math.sin(th), 1.08 * Math.cos(ph), -R * Math.cos(th)];
+  }
+  function torus(u, v) {
+    const th = TAU * u, ph = Math.PI / 2 - TAU * v, R = 0.92, r = 0.42;
+    const W = R + r * Math.cos(ph);
+    return [-W * Math.sin(th), r * Math.sin(ph), -W * Math.cos(th)];
+  }
+  // Möbius band with k half-twists; theta may run past 2π (used by the cut and the finger trace)
+  function mobiusAt(th, s, k, R) {
+    const tw = k * th / 2, W = R + s * Math.cos(tw);
+    return [-W * Math.sin(th), s * Math.sin(tw), -W * Math.cos(th)];
+  }
+  const MOB_R = 1.0, MOB_W = 0.46;
+  const mobius = (u, v) => mobiusAt(TAU * u, MOB_W * (2 * v - 1), 1, MOB_R);
+  // The centerline cut, in place: one strip that runs around twice (θ from 0 to 4π), with a visible slit
+  const mobiusCut = (u, v) => mobiusAt(2 * TAU * u, MOB_W * (0.07 + 0.93 * v), 1, MOB_R);
+  // The same strip pulled open into one big loop: 4 half-twists = 2 full twists, half as wide
+  const mobiusOpen = (u, v) => mobiusAt(TAU * u, 0.23 * (2 * v - 1), 4, 1.45);
+  function kleinRaw(u, v) {
+    const cu = Math.cos(u), su = Math.sin(u), cv = Math.cos(v);
+    const c2 = cu * cu, c3 = c2 * cu, c4 = c2 * c2, c5 = c4 * cu, c6 = c4 * c2, c7 = c6 * cu;
+    return [
+      -2 / 15 * cu * (3 * cv - 30 * su + 90 * c4 * su - 60 * c6 * su + 5 * cu * cv * su),
+      -1 / 15 * su * (3 * cv - 3 * c2 * cv - 48 * c4 * cv + 48 * c6 * cv - 60 * su + 5 * cu * cv * su - 5 * c3 * cv * su - 80 * c5 * cv * su + 80 * c7 * cv * su),
+      2 / 15 * (3 + 5 * cu * su) * Math.sin(v)
+    ];
+  }
+  function klein(u, v) {
+    const p = kleinRaw(Math.PI * u, TAU * v), k = 0.6;
+    return [(p[0] - 0.15) * k, (p[1] - 2.1) * k, p[2] * k];
+  }
+
+  function sample(fn) {
+    const a = new Float32Array((NU + 1) * (NV + 1) * 3);
+    let o = 0;
+    for (let j = 0; j <= NV; j++) for (let i = 0; i <= NU; i++) {
+      const p = fn(i / NU, j / NV); a[o++] = p[0]; a[o++] = p[1]; a[o++] = p[2];
+    }
+    return a;
+  }
+  const SHAPES = {
+    pumpkin: sample(pumpkin), sphere: sample(sphere), torus: sample(torus),
+    mobius: sample(mobius), mobiusCut: sample(mobiusCut), mobiusOpen: sample(mobiusOpen), klein: sample(klein)
+  };
+
+  /* ---------- Textures ---------- */
+  function canvasTex(w, h, draw) {
+    const c = document.createElement('canvas'); c.width = w; c.height = h;
+    draw(c.getContext('2d'), w, h);
+    const t = new THREE.CanvasTexture(c); t.anisotropy = 4; return t;
+  }
+  function skin(ctx, w, h) {
+    const g = ctx.createLinearGradient(0, 0, 0, h);
+    g.addColorStop(0, '#d9701a'); g.addColorStop(.5, '#f28a1c'); g.addColorStop(1, '#c95f12');
+    ctx.fillStyle = g; ctx.fillRect(0, 0, w, h);
+    for (let i = 0; i < 8; i++) {          // darker grooves at the 8 ribs
+      const x = (i + 0.5) / 8 * w;
+      const gg = ctx.createLinearGradient(x - w / 32, 0, x + w / 32, 0);
+      gg.addColorStop(0, 'rgba(120,45,5,0)'); gg.addColorStop(.5, 'rgba(120,45,5,.55)'); gg.addColorStop(1, 'rgba(120,45,5,0)');
+      ctx.fillStyle = gg; ctx.fillRect(x - w / 32, 0, w / 16, h);
+    }
+    for (let i = 0; i < 900; i++) {        // speckle
+      ctx.fillStyle = `rgba(255,220,150,${Math.random() * .08})`;
+      ctx.fillRect(Math.random() * w, Math.random() * h, 2, 1);
+    }
+  }
+  // Face centred at u = 0.5 (front), v ≈ 0.5 (equator)
+  function face(ctx, w, h, fill) {
+    ctx.fillStyle = fill;
+    const cx = w * 0.5, cy = h * 0.5, sx = w / 1024, sy = h / 512;
+    const P = (pts) => { ctx.beginPath(); pts.forEach(([x, y], i) => i ? ctx.lineTo(cx + x * sx, cy + y * sy) : ctx.moveTo(cx + x * sx, cy + y * sy)); ctx.closePath(); ctx.fill(); };
+    P([[-95, -40], [-30, -40], [-62, -105]]);   // eyes
+    P([[30, -40], [95, -40], [62, -105]]);
+    P([[-14, 0], [14, 0], [0, -26]]);           // nose
+    P([[-120, 22], [-80, 40], [-60, 28], [-38, 52], [-12, 36], [12, 52], [38, 36], [60, 52], [80, 40], [120, 22],
+       [96, 70], [60, 92], [40, 76], [14, 96], [-14, 80], [-40, 96], [-62, 76], [-96, 70]]);
+  }
+  const skinTex = canvasTex(1024, 512, skin);
+  const carvedTex = canvasTex(1024, 512, (c, w, h) => { skin(c, w, h); face(c, w, h, '#2b1206'); });
+  const glowTex = canvasTex(1024, 512, (c, w, h) => { c.fillStyle = '#000'; c.fillRect(0, 0, w, h); face(c, w, h, '#fff'); });
+  const darkTex = canvasTex(4, 4, (c) => { c.fillStyle = '#000'; c.fillRect(0, 0, 4, 4); });
+
+  /* ---------- Scene ---------- */
+  const canvas = document.getElementById('scene');
+  const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: true });
+  renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+  renderer.outputEncoding = THREE.sRGBEncoding;
+  const scene = new THREE.Scene();
+  const camera = new THREE.PerspectiveCamera(38, 1, 0.1, 100);
+  camera.position.set(0, 0.9, 5.4);
+  const controls = new THREE.OrbitControls(camera, canvas);
+  controls.enableDamping = true; controls.enablePan = false; controls.minDistance = 3; controls.maxDistance = 9;
+
+  scene.add(new THREE.HemisphereLight(0xc9b8ff, 0x2a1408, 0.55));
+  const key = new THREE.DirectionalLight(0xfff1dc, 0.95); key.position.set(3, 4, 5); scene.add(key);
+  const rim = new THREE.DirectionalLight(0x8f7bff, 0.6); rim.position.set(-4, 2, -4); scene.add(rim);
+  const candle = new THREE.PointLight(0xffb347, 0, 4); scene.add(candle);
+
+  const geo = new THREE.BufferGeometry();
+  const pos = new Float32Array(SHAPES.pumpkin);
+  geo.setAttribute('position', new THREE.BufferAttribute(pos, 3));
+  const uvs = new Float32Array((NU + 1) * (NV + 1) * 2);
+  for (let j = 0, o = 0; j <= NV; j++) for (let i = 0; i <= NU; i++) { uvs[o++] = i / NU; uvs[o++] = 1 - j / NV; }
+  geo.setAttribute('uv', new THREE.BufferAttribute(uvs, 2));
+  const idx = [];
+  for (let j = 0; j < NV; j++) for (let i = 0; i < NU; i++) {
+    const a = j * (NU + 1) + i, b = a + 1, c = a + NU + 1, d = c + 1;
+    idx.push(a, c, b, b, c, d);
+  }
+  geo.setIndex(idx);
+  geo.computeVertexNormals();
+
+  [skinTex, carvedTex].forEach(t => t.encoding = THREE.sRGBEncoding);
+  const front = new THREE.MeshStandardMaterial({ map: skinTex, roughness: 0.62, metalness: 0, emissive: 0xffb347, emissiveMap: darkTex, emissiveIntensity: 0, side: THREE.FrontSide, transparent: true });
+  const back = new THREE.MeshStandardMaterial({ color: 0xffc85a, roughness: 0.8, side: THREE.BackSide, transparent: true });
+  const group = new THREE.Group(); scene.add(group);
+  const meshF = new THREE.Mesh(geo, front), meshB = new THREE.Mesh(geo, back);
+  group.add(meshB, meshF);
+
+  // Stem
+  const stemCurve = new THREE.CatmullRomCurve3([new THREE.Vector3(0, 0.6, 0), new THREE.Vector3(0.02, 0.85, 0), new THREE.Vector3(0.12, 1.02, 0.02), new THREE.Vector3(0.26, 1.08, 0.04)]);
+  const stem = new THREE.Mesh(new THREE.TubeGeometry(stemCurve, 24, 0.075, 10, false), new THREE.MeshStandardMaterial({ color: 0x5f7a3e, roughness: 0.9 }));
+  group.add(stem);
+
+  // Torus loops (meridian + longitude)
+  function loopLine(fn, color) {
+    const pts = []; for (let i = 0; i <= 200; i++) pts.push(new THREE.Vector3(...fn(i / 200)));
+    return new THREE.Line(new THREE.BufferGeometry().setFromPoints(pts), new THREE.LineBasicMaterial({ color, linewidth: 2 }));
+  }
+  const loops = new THREE.Group();
+  loops.add(loopLine(t => { const p = torus(t, 0); return [p[0], p[1] + 0.012, p[2]]; }, 0x8bab6e));
+  loops.add(loopLine(t => { const p = torus(0.5, t), s = 1.015; return [p[0] * s, p[1] * s, (p[2] - 0.92) * s + 0.92]; }, 0x9fd3ff));
+  loops.visible = false; group.add(loops);
+
+  // Sphere spin axis
+  const axis = new THREE.Line(new THREE.BufferGeometry().setFromPoints([new THREE.Vector3(0, -1.7, 0), new THREE.Vector3(0, 1.7, 0)]), new THREE.LineBasicMaterial({ color: 0xffd36b }));
+  axis.visible = false; group.add(axis);
+
+  // Finger trace on the Möbius band
+  const TRACE_N = 600;
+  const tracePts = new Float32Array((TRACE_N + 1) * 3);
+  function mobNormal(th) {
+    const e = 1e-3, p = mobiusAt(th, 0, 1, MOB_R);
+    const pu = mobiusAt(th + e, 0, 1, MOB_R), pv = mobiusAt(th, e, 1, MOB_R);
+    const du = new THREE.Vector3(pu[0] - p[0], pu[1] - p[1], pu[2] - p[2]);
+    const dv = new THREE.Vector3(pv[0] - p[0], pv[1] - p[1], pv[2] - p[2]);
+    return [new THREE.Vector3(...p), dv.cross(du).normalize()];
+  }
+  for (let i = 0; i <= TRACE_N; i++) {
+    const [p, n] = mobNormal(2 * TAU * i / TRACE_N);
+    p.addScaledVector(n, 0.035); tracePts.set([p.x, p.y, p.z], i * 3);
+  }
+  const traceGeo = new THREE.BufferGeometry(); traceGeo.setAttribute('position', new THREE.BufferAttribute(tracePts, 3));
+  const trace = new THREE.Line(traceGeo, new THREE.LineBasicMaterial({ color: 0x7c4dff }));
+  const finger = new THREE.Mesh(new THREE.SphereGeometry(0.06, 16, 12), new THREE.MeshBasicMaterial({ color: 0x7c4dff }));
+  trace.visible = finger.visible = false; group.add(trace, finger);
+
+  /* ---------- Morphing ---------- */
+  let morph = null;
+  function morphTo(name, ms) {
+    const from = new Float32Array(pos), to = SHAPES[name];
+    morph = { from, to, t0: performance.now(), dur: reduceMotion ? 1 : (ms || 1500) };
+  }
+  const ease = t => t < .5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
+
+  let tiltTarget = 0, spin = null, traceRun = null, xray = false;
+
+  function resize() {
+    const r = canvas.parentElement.getBoundingClientRect();
+    renderer.setSize(r.width, r.height, false);
+    camera.aspect = r.width / r.height; camera.updateProjectionMatrix();
+    camera.position.z = r.width < 480 ? 6.4 : 5.4;
+  }
+  new ResizeObserver(resize).observe(canvas.parentElement); resize();
+
+  let last = performance.now();
+  function frame(now) {
+    const dt = Math.min(0.05, (now - last) / 1000); last = now;
+    if (morph) {
+      const k = ease(Math.min(1, (now - morph.t0) / morph.dur));
+      for (let i = 0; i < pos.length; i++) pos[i] = morph.from[i] + (morph.to[i] - morph.from[i]) * k;
+      geo.attributes.position.needsUpdate = true; geo.computeVertexNormals();
+      if (k >= 1) morph = null;
+    }
+    if (spin) {
+      const t = Math.min(1, (now - spin.t0) / 2600);
+      group.quaternion.copy(spin.q0).multiply(new THREE.Quaternion().setFromAxisAngle(spin.axis, ease(t) * TAU));
+      if (t >= 1) { spin = null; axis.visible = false; setStatus('Same sphere, every angle. That is O(3) at work.'); }
+    } else {
+      group.rotation.x += (tiltTarget - group.rotation.x) * Math.min(1, dt * 3);
+      group.rotation.z += (0 - group.rotation.z) * Math.min(1, dt * 3);
+      if (!reduceMotion && !traceRun) group.rotation.y += dt * 0.25;
+    }
+    if (traceRun) {
+      const t = Math.min(1, (now - traceRun.t0) / 9000), n = Math.floor(t * TRACE_N);
+      traceGeo.setDrawRange(0, n + 1);
+      finger.position.set(tracePts[n * 3], tracePts[n * 3 + 1], tracePts[n * 3 + 2]);
+      const lap = t < 0.5 ? 1 : 2;
+      if (lap !== traceRun.lap) {
+        traceRun.lap = lap;
+        setStatus(lap === 1 ? 'Lap 1: sliding along the centerline…' : 'Lap 1 done: you are on the "other" side of where you started. Keep going…');
+      }
+      if (t >= 1) { traceRun = null; setStatus('Lap 2 done: back home. Both "sides" were the same side all along: one side.'); }
+    }
+    const flicker = 0.85 + 0.15 * Math.sin(now / 90) * Math.sin(now / 37);
+    if (front.emissiveIntensity > 0) { front.emissiveIntensity = 1.4 * flicker; candle.intensity = 1.6 * flicker; }
+    controls.update();
+    renderer.render(scene, camera);
+    requestAnimationFrame(frame);
+  }
+  requestAnimationFrame(frame);
+
+  /* ---------- Content ---------- */
+  const specs = (rows) => `<div class="specs">${rows.map(([k, v, c]) => `<div class="spec"><span>${k}</span><strong class="${c || ''}">${v}</strong></div>`).join('')}</div>`;
+  const legend = `<div class="legend"><span><i style="background:var(--pumpkin)"></i>Front, as the computer labels it</span><span><i style="background:var(--candle)"></i>Back</span></div>`;
+
+  const STAGES = [
+    {
+      id: 'pumpkin', label: 'Pumpkin', shape: 'pumpkin', tilt: 0, carve: 'Carve',
+      html: `
+        <div class="eyebrow">Start · the raw pumpkin</div>
+        <h1>Every pumpkin is secretly a sphere</h1>
+        <p class="lede">Four surfaces, ranked by decreasing symmetry. Each carve turns this pumpkin into the next 3D-printed model and answers its question. Hold the printed model while you read.</p>
+        <div class="qa">
+          <p class="a">Even the pumpkin has symmetry. Ignore the stem, and its 8 ribs allow 8 rotations about the vertical axis, 8 vertical mirrors and a top-to-bottom mirror: a finite group of 32 elements, <span class="math">D₈ₕ</span>. Smooth the ribs away and the symmetry becomes infinite.</p>
+        </div>
+        ${specs([['Genus', '0'], ['Orientable', 'Yes', 'yes'], ['Edge', 'None'], ['Euler χ', '2'], ['Symmetry', 'D₈ₕ']])}
+        <p class="footnote">Click <b>Carve</b> to smooth it into a sphere.</p>`
+    },
+    {
+      id: 'sphere', label: 'Sphere', shape: 'sphere', tilt: 0, carve: 'Carve a hole',
+      html: `
+        <div class="eyebrow">Surface 1 · the king of symmetry</div>
+        <h1>Sphere</h1>
+        <div class="qa">
+          <p class="q">What symmetry group does it have? Is it orientable?</p>
+          <p class="a">Its symmetry group is <b>O(3)</b>: every rotation about every axis through the center, plus every reflection through the center. That is a continuous, three-dimensional family of symmetries, the most any surface in space can have. The rotations alone form <span class="math">SO(3)</span>.</p>
+          <p class="a"><b>Yes, it is orientable.</b> It has a clear inside and outside, and an outward-pointing arrow can be chosen consistently at every point.</p>
+          <p class="more">Genus 0. Euler characteristic <span class="math">χ = V − E + F = 2</span>; check it on a cube: <span class="math">8 − 12 + 6 = 2</span>. Every loop you draw on a sphere can be shrunk to a point.</p>
+        </div>
+        ${specs([['Genus', '0'], ['Orientable', 'Yes', 'yes'], ['Edge', 'None'], ['Euler χ', '2'], ['Symmetry', 'O(3)']])}
+        <div class="tools"><button class="tool" id="spinBtn" type="button">Spin about a random axis</button></div>
+        <div class="status" id="status"></div>`
+    },
+    {
+      id: 'torus', label: 'Torus', shape: 'torus', tilt: 0.55, carve: 'Slice and twist',
+      html: `
+        <div class="eyebrow">Surface 2 · symmetric, with a hole</div>
+        <h1>Torus</h1>
+        <div class="qa">
+          <p class="q">What broke compared to the sphere? Still orientable?</p>
+          <p class="a"><b>The genus broke.</b> Punching the hole takes the genus from 0 to 1 and the Euler characteristic from 2 to 0. No stretching can undo that.</p>
+          <p class="a"><b>The continuous symmetry shrank</b> from O(3) to <span class="math">O(2) × Z₂</span>. Only rotations about the central axis survive, plus mirrors through planes containing that axis and the mirror through the equator. The axis through the hole is now special; on the sphere no direction was.</p>
+          <p class="a"><b>Still orientable.</b> It has an inside and an outside, just like the sphere.</p>
+          <p class="more">Two loops on the torus can't be shrunk to a point: one around the tube, one around the hole. A sphere has none. Those loops are the genus you can see.</p>
+        </div>
+        ${specs([['Genus', '1'], ['Orientable', 'Yes', 'yes'], ['Edge', 'None'], ['Euler χ', '0'], ['Symmetry', 'O(2)×Z₂']])}
+        <div class="tools"><button class="tool" id="loopsBtn" type="button" aria-pressed="false">Show the loops a sphere doesn't have</button></div>`
+    },
+    {
+      id: 'mobius', label: 'Möbius', shape: 'mobius', tilt: 0.75, carve: 'Seal the edge',
+      html: `
+        <div class="eyebrow">Surface 3 · where breaking begins</div>
+        <h1>Möbius belt</h1>
+        <div class="qa">
+          <p class="q">Trace your finger along the surface: how many sides does it have?</p>
+          <p class="a"><b>One side, and one edge.</b> Slide along the centerline: after one lap you are on the back of the spot where you started. Only after a second lap do you come home. <b>Orientability is broken</b>: no consistent front exists.</p>
+          ${legend}
+          <p class="more">Look for the seam where orange collides with gold. No coloring can avoid it, which is exactly what non-orientable means.</p>
+          <div class="tools"><button class="tool" id="traceBtn" type="button">Trace with a finger</button></div>
+          <div class="status" id="status"></div>
+        </div>
+        <div class="qa">
+          <p class="q">Cut it along the centerline. What happens, and why is that symmetry breaking made visible?</p>
+          <p class="a"><b>It does not fall into two pieces.</b> You get one band, twice as long and half as wide, with two full twists (four half-twists). That band has <b>two sides and two edges</b>: it is orientable.</p>
+          <p class="a">Every small patch of a Möbius band looks like an ordinary strip. The breaking is global, hidden in how the ends are glued. The centerline is a loop that doesn't separate the band, so the cut can't split it, and the twist has to go somewhere. It reappears as extra twists in a two-sided band, and the colors separate cleanly. The cut turns a hidden global property into a shape you can hold.</p>
+          <div class="tools">
+            <button class="tool" id="cutBtn" type="button">Cut along the centerline</button>
+            <button class="tool" id="openBtn" type="button" disabled>Pull it open</button>
+            <button class="tool" id="uncutBtn" type="button" disabled>Undo the cut</button>
+          </div>
+          <p class="more">Try it on paper next: cut a third of the way in from the edge instead, and you get two linked bands, a thin Möbius band and a long two-sided one.</p>
+        </div>
+        ${specs([['Genus', '1 crosscap'], ['Orientable', 'No', 'no'], ['Edge', '1 circle'], ['Euler χ', '0'], ['Symmetry', 'Z₂, chiral']])}
+        <p class="footnote">The round model keeps one 180° flip, and its mirror image twists the other way.</p>`
+    },
+    {
+      id: 'klein', label: 'Klein', shape: 'klein', tilt: 0, carve: 'Carve the face',
+      html: `
+        <div class="eyebrow">Surface 4 · breaking taken to the limit</div>
+        <h1>Klein bottle</h1>
+        <div class="qa">
+          <p class="q">A closed surface with no inside and no outside. Why must it self-intersect in 3D?</p>
+          <p class="a">Any closed surface sitting in 3D space without touching itself splits space into an inside and an outside (the <b>Jordan–Brouwer separation theorem</b>). Then "point outward" picks a consistent direction everywhere, so the surface would be orientable.</p>
+          <p class="a">The Klein bottle is <b>non-orientable</b>, so it cannot sit in 3D without passing through itself. The neck has to pierce the wall. In 4D the neck can go around through the extra dimension and the self-intersection disappears.</p>
+          ${legend}
+          <p class="more">Glue two Möbius bands together along their edges and you get a Klein bottle: closed, one-sided, χ = 0. The orange/gold seam shows up here too.</p>
+        </div>
+        ${specs([['Genus', '2 crosscaps'], ['Orientable', 'No', 'no'], ['Edge', 'None'], ['Euler χ', '0'], ['Symmetry', 'Z₂ mirror']])}
+        <div class="tools"><button class="tool" id="xrayBtn" type="button" aria-pressed="false">X-ray: see where it passes through itself</button></div>`
+    },
+    {
+      id: 'ranking', label: 'Ranking', shape: 'pumpkin', tilt: 0, carve: 'Start over', carved: true,
+      html: `
+        <div class="eyebrow">Final question · the whole patch</div>
+        <h1>What broke, step by step</h1>
+        <p class="order">Sphere<span>›</span>Torus<span>›</span>Möbius belt<span>›</span>Klein bottle</p>
+        <ol class="steps">
+          <li><div class="n">1</div><div>
+            <h3>Sphere → Torus: <em>genus breaks</em></h3>
+            <p><span class="broke">broke</span>genus 0 → 1, χ 2 → 0, symmetry O(3) → O(2)×Z₂</p>
+            <p><span class="kept">kept</span>orientability, inside/outside, no edge</p>
+          </div></li>
+          <li><div class="n">2</div><div>
+            <h3>Torus → Möbius: <em>orientability breaks</em></h3>
+            <p><span class="broke">broke</span>two sides become one; an edge appears; the last continuous rotation goes, only Z₂ remains</p>
+            <p><span class="kept">kept</span>χ = 0</p>
+          </div></li>
+          <li><div class="n">3</div><div>
+            <h3>Möbius → Klein: <em>inside/outside breaks</em></h3>
+            <p><span class="broke">broke</span>the edge is sealed shut, yet the closed surface still has one side, so it has no inside and no outside; it can no longer live in 3D without self-intersecting</p>
+            <p><span class="kept">kept</span>non-orientability, χ = 0, a single Z₂</p>
+          </div></li>
+        </ol>
+        <div class="table-wrap"><table>
+          <thead><tr><th>Surface</th><th>Genus</th><th>Orientable</th><th>Edge</th><th>Inside/outside</th><th>χ</th><th>Symmetry</th></tr></thead>
+          <tbody>
+            <tr><td>Sphere</td><td>0</td><td>yes</td><td>none</td><td>yes</td><td>2</td><td>O(3)</td></tr>
+            <tr><td>Torus</td><td>1</td><td>yes</td><td>none</td><td>yes</td><td>0</td><td>O(2)×Z₂</td></tr>
+            <tr><td>Möbius belt</td><td>1 crosscap</td><td>no</td><td>1 circle</td><td>no</td><td>0</td><td>Z₂</td></tr>
+            <tr><td>Klein bottle</td><td>2 crosscaps</td><td>no</td><td>none</td><td>no</td><td>0</td><td>Z₂</td></tr>
+          </tbody>
+        </table></div>
+        <p class="footnote">Möbius and Klein both keep a two-element group, so the last step is ranked by what else breaks: the inside/outside distinction for a closed surface, and the ability to exist in 3D at all. Symmetry groups here are for the standard round models; the print in your hand may differ.</p>`
+    }
+  ];
+
+  const panel = document.getElementById('panel');
+  const pathNav = document.getElementById('path');
+  const carveBtn = document.getElementById('carve');
+  const carveLabel = document.getElementById('carveLabel');
+  const slash = document.getElementById('slash');
+  STAGES.forEach((s, i) => {
+    const b = document.createElement('button'); b.type = 'button'; b.textContent = s.label;
+    b.addEventListener('click', () => go(i)); pathNav.appendChild(b);
+  });
+
+  function setStatus(t) { const el = document.getElementById('status'); if (el) el.textContent = t; }
+  function setCarved(on) {
+    front.map = on ? carvedTex : skinTex;
+    front.emissiveMap = on ? glowTex : darkTex;
+    front.emissiveIntensity = on ? 1.4 : 0;
+    candle.intensity = on ? 1.6 : 0;
+    front.needsUpdate = true;
+  }
+  function setXray(on) {
+    xray = on;
+    front.opacity = back.opacity = on ? 0.42 : 1;
+    front.depthWrite = back.depthWrite = !on;
+  }
+
+  let stage = 0;
+  function go(i, fromCarve) {
+    stage = i; const s = STAGES[i];
+    if (fromCarve) { slash.classList.remove('go'); void slash.getBoundingClientRect(); slash.classList.add('go'); }
+    // reset per-stage extras
+    loops.visible = axis.visible = trace.visible = finger.visible = false;
+    traceRun = null; spin = null; setXray(false);
+    stem.visible = s.shape === 'pumpkin';
+    setCarved(!!s.carved);
+    tiltTarget = s.tilt;
+    morphTo(s.shape);
+    carveLabel.textContent = s.carve;
+    [...pathNav.children].forEach((b, k) => b.toggleAttribute('aria-current', false) || (k === i && b.setAttribute('aria-current', 'step')));
+    panel.innerHTML = `<article class="card fade">${s.html}</article>`;
+    wire(s.id);
+    try { history.replaceState(null, '', '#' + s.id); } catch (e) {}
+  }
+
+  function wire(id) {
+    const $ = (x) => document.getElementById(x);
+    if (id === 'sphere') $('spinBtn').addEventListener('click', () => {
+      const a = new THREE.Vector3(Math.random() - .5, Math.random() - .5, Math.random() - .5).normalize();
+      axis.geometry.setFromPoints([a.clone().multiplyScalar(-1.7), a.clone().multiplyScalar(1.7)]);
+      group.quaternion.identity(); axis.visible = true;
+      spin = { axis: a, q0: group.quaternion.clone(), t0: performance.now() };
+      setStatus(`Spinning about (${a.x.toFixed(2)}, ${a.y.toFixed(2)}, ${a.z.toFixed(2)})…`);
+    });
+    if (id === 'torus') $('loopsBtn').addEventListener('click', (e) => {
+      loops.visible = !loops.visible; e.currentTarget.setAttribute('aria-pressed', loops.visible);
+    });
+    if (id === 'mobius') {
+      const cut = $('cutBtn'), open = $('openBtn'), uncut = $('uncutBtn');
+      $('traceBtn').addEventListener('click', () => {
+        morphTo('mobius', 700); cut.disabled = false; open.disabled = uncut.disabled = true;
+        trace.visible = finger.visible = true; traceGeo.setDrawRange(0, 1);
+        traceRun = { t0: performance.now(), lap: 0 };
+      });
+      cut.addEventListener('click', () => {
+        trace.visible = finger.visible = false; traceRun = null;
+        morphTo('mobiusCut', 1200); cut.disabled = true; open.disabled = uncut.disabled = false;
+        setStatus('Cut. Still one piece: it runs around twice before closing up.');
+      });
+      open.addEventListener('click', () => {
+        morphTo('mobiusOpen', 1800); open.disabled = true; tiltTarget = 0.9;
+        setStatus('Pulled open: one loop, 4 half-twists. Orange and gold no longer meet, so it has two sides.');
+      });
+      uncut.addEventListener('click', () => {
+        morphTo('mobius', 1200); cut.disabled = false; open.disabled = uncut.disabled = true; tiltTarget = 0.75;
+        setStatus('');
+      });
+    }
+    if (id === 'klein') $('xrayBtn').addEventListener('click', (e) => {
+      setXray(!xray); e.currentTarget.setAttribute('aria-pressed', xray);
+    });
+  }
+
+  carveBtn.addEventListener('click', () => go((stage + 1) % STAGES.length, true));
+
+  const start = (data) => {
+    const fromHash = STAGES.findIndex(s => s.id === (location.hash || '').slice(1));
+    const i = data && Number.isInteger(data.stage) ? data.stage : Math.max(0, fromHash);
+    go(i);
+    pos.set(SHAPES[STAGES[i].shape]); morph = null; geo.computeVertexNormals();
+    group.rotation.x = STAGES[i].tilt;
+  };
+  window.claude?.hot?.snapshot?.(() => ({ stage }));
+  window.claude?.hot?.ready ? window.claude.hot.ready(start) : start(window.claude?.hot?.data ?? {});
+})();
+</script>
