@@ -720,7 +720,7 @@
           <span class="tag">WebGL</span>
           <span class="tag">Topology</span>
         </div>
-        <a href="projects/pumpkin-patch.html" target="_blank" rel="noopener" class="social-btn launch-btn">Launch &#8599;</a>
+        <a href="/classes/differential-equations/pumpkin-patch/" class="social-btn launch-btn">Launch &rarr;</a>
       </div>
     </div>
     <button class="social-btn page-btn" data-go="projects">&larr; Back to Projects</button>
@@ -1067,7 +1067,12 @@ let histIdx = -1;
 const allSections = document.querySelectorAll('.section');
 const navBtns     = document.querySelectorAll('.nbtn');
 
-function go(id) {
+// Each section gets a URL (#about, #classes, ...) so links, refresh and the back button work
+function go(id, push = true) {
+  if (!SECTIONS.includes(id)) id = 'home';
+  if (push && id !== currentSection) {
+    history.pushState(null, '', id === 'home' ? location.pathname : '#' + id);
+  }
   allSections.forEach(s => s.classList.remove('active'));
   navBtns.forEach(b => b.classList.remove('active'));
   document.getElementById('section-' + id)?.classList.add('active');
@@ -1079,6 +1084,8 @@ function go(id) {
 }
 
 navBtns.forEach(b => b.addEventListener('click', () => go(b.dataset.s)));
+window.addEventListener('popstate', () => go(location.hash.slice(1), false));
+go(location.hash.slice(1), false);
 document.querySelectorAll('[data-go]').forEach(b => b.addEventListener('click', () => go(b.dataset.go)));
 
 function addLine(text, cls = 'out') {

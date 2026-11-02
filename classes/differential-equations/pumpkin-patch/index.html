@@ -71,6 +71,8 @@ body {
   position: relative; z-index: 2; display: flex; justify-content: space-between; align-items: flex-start;
   gap: 12px; padding: 16px 18px; pointer-events: none;
 }
+.back-link { pointer-events: auto; font-family: var(--font-mono); font-size: 11px; letter-spacing: .12em; text-transform: uppercase; color: var(--dim); text-decoration: none; }
+.back-link:hover { color: var(--candle); }
 .brand { font-family: var(--font-display); font-size: 28px; line-height: 1; letter-spacing: .01em; color: var(--pumpkin); }
 .brand small { display: block; font-family: var(--font-mono); font-size: 11px; letter-spacing: .12em; text-transform: uppercase; color: var(--dim); margin-top: 6px; }
 .stage-bottom {
@@ -188,6 +190,7 @@ tr:last-child td { border-bottom: 0; }
     </svg>
     <div class="stage-top">
       <div class="brand">Pumpkin Topology<small>4 surfaces · decreasing symmetry</small></div>
+      <a class="back-link" href="/#classes">&larr; Portfolio</a>
     </div>
     <div class="stage-bottom">
       <button class="carve" id="carve" type="button">
