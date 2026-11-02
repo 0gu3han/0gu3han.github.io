@@ -1,5 +1,9 @@
+<!DOCTYPE html>
+<html lang="en">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <title>Pumpkin Topology</title>
-<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="icon" href="favicon.svg" type="image/svg+xml">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Grenze+Gotisch:wght@500;700&family=Figtree:wght@400;500;600&family=JetBrains+Mono:wght@400;600&display=swap">
@@ -644,14 +648,10 @@ tr:last-child td { border-bottom: 0; }
 
   carveBtn.addEventListener('click', () => go((stage + 1) % STAGES.length, true));
 
-  const start = (data) => {
-    const fromHash = STAGES.findIndex(s => s.id === (location.hash || '').slice(1));
-    const i = data && Number.isInteger(data.stage) ? data.stage : Math.max(0, fromHash);
-    go(i);
-    pos.set(SHAPES[STAGES[i].shape]); morph = null; geo.computeVertexNormals();
-    group.rotation.x = STAGES[i].tilt;
-  };
-  window.claude?.hot?.snapshot?.(() => ({ stage }));
-  window.claude?.hot?.ready ? window.claude.hot.ready(start) : start(window.claude?.hot?.data ?? {});
+  const fromHash = STAGES.findIndex(s => s.id === (location.hash || '').slice(1));
+  const i = Math.max(0, fromHash);
+  go(i);
+  pos.set(SHAPES[STAGES[i].shape]); morph = null; geo.computeVertexNormals();
+  group.rotation.x = STAGES[i].tilt;
 })();
 </script>
