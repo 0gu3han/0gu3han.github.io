@@ -747,6 +747,7 @@
     <button class="nbtn active" data-s="home"     data-key="~">home</button>
     <button class="nbtn"        data-s="about"    data-key="01">about</button>
     <button class="nbtn"        data-s="projects" data-key="02">projects</button>
+    <button class="nbtn"        data-s="classes"  data-key="02.1">classes</button>
     <button class="nbtn"        data-s="contact"  data-key="03">contact</button>
   </nav>
 
@@ -1076,9 +1077,7 @@ function go(id, push = true) {
   allSections.forEach(s => s.classList.remove('active'));
   navBtns.forEach(b => b.classList.remove('active'));
   document.getElementById('section-' + id)?.classList.add('active');
-  // Class Projects is a sub-page of Projects, so keep that pill lit
-  const navId = id === 'classes' ? 'projects' : id;
-  document.querySelector(`.nbtn[data-s="${navId}"]`)?.classList.add('active');
+  document.querySelector(`.nbtn[data-s="${id}"]`)?.classList.add('active');
   currentSection = id;
   blobTarget = id === 'home' ? 1 : 0;
 }
